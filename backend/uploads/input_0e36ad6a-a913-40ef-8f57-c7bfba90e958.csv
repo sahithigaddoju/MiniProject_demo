@@ -1,0 +1,11 @@
+workloadId,cpuRequired,memoryRequired,runtime,deadline,delayTolerant,basePrice,emergencyFlag
+W1,4,8,2,1712345678,True,10,False
+W2,2,4,1,1712345680,False,6,False
+W3,8,16,5,1712345690,True,20,True
+W4,6,12,3,1712345700,False,15,False
+W5,10,32,6,1712345800,True,30,True
+W6,1,2,1,1712345900,True,3,False
+W7,12,64,10,1712346000,False,50,True
+W8,3,6,2,1712346100,True,8,False
+W9,5,10,4,1712346200,False,12,False
+W10,7,14,3,1712346300,True,18,True

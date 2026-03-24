@@ -1,0 +1,70 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: Inter, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    background-color: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 1rem;
+    padding: 1.5rem;
+  }
+  .btn-primary {
+    background-color: #22d3ee;
+    color: #000000;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(34,211,238,0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-primary:hover { background-color: #67e8f9; }
+  .btn-secondary {
+    background-color: rgba(255,255,255,0.05);
+    color: #cbd5e1;
+    font-weight: 500;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .btn-secondary:hover { background-color: rgba(255,255,255,0.08); }
+  .input {
+    width: 100%;
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    background-color: rgba(255,255,255,0.05);
+    color: #ffffff;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .input::placeholder { color: #64748b; }
+  .input:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 2px rgba(34,211,238,0.2);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+}

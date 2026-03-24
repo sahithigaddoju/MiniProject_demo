@@ -1,0 +1,123 @@
+{
+  "batchId": "0e36ad6a-a913-40ef-8f57-c7bfba90e958",
+  "summary": {
+    "total": 10,
+    "accepted": 10,
+    "rejected": 0,
+    "preempted": 0,
+    "totalEnergy": "0.60",
+    "totalRevenue": "1.60"
+  },
+  "results": [
+    {
+      "workloadId": "28bca165-23f5-4b97-8dbb-95a491b2ec4c",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "e8093c19-bcfc-458f-81db-d1a1e0d0c5b8",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "2b00cb8e-ddb6-45ff-93c2-c4601c7cb78c",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "2635dc3b-1427-4e9f-bd15-57ffd2807c8a",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "ac902526-e32d-4cf8-b8e9-658f538dfbbc",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "febcc0ee-c398-4698-aca5-cbf9cd306606",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "2d04d24a-46f8-4dbc-a63f-792326a616c1",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "dd8f427a-bf55-4114-8eb8-33ed99387ffa",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "db5fb47c-c936-405c-a8a8-14c8b985ca1e",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    },
+    {
+      "workloadId": "ac5d3860-0614-45c8-8b05-9d6d05216025",
+      "cpu": 1,
+      "memory": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "price": "0.1600",
+      "startTime": "2026-03-21T14:55:20.811Z",
+      "endTime": "2026-03-21T15:55:20.811Z",
+      "priority": "normal"
+    }
+  ]
+}
