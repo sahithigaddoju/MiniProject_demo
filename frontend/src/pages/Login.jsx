@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
@@ -39,6 +39,15 @@ export default function Login() {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Show session expired message if redirected from a 401
+  useEffect(() => {
+    const reason = sessionStorage.getItem('auth_redirect_reason');
+    if (reason) {
+      setError('Your session expired. Please login again.');
+      sessionStorage.removeItem('auth_redirect_reason');
+    }
+  }, []);
 
   const clearError = () => setError('');
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import api from '../api';
 import { useTheme } from '../context/ThemeContext';
+import { useDashboard } from '../context/DashboardContext';
 import { Loader2, ExternalLink, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const statusColors = {
@@ -17,20 +17,18 @@ const priorityColors = {
 
 export default function ScheduledWorkloads() {
   const { theme } = useTheme();
-  const [schedules, setSchedules] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { scheduleResults, loading, refresh } = useDashboard();
   const [expanded, setExpanded] = useState(null);
   const [filter, setFilter] = useState('All');
 
-  const load = () => {
-    setLoading(true);
-    api.get('/schedule').then(res => {
-      setSchedules(res.data.reverse());
-      if (res.data.length > 0) setExpanded(res.data[0].id);
-    }).finally(() => setLoading(false));
-  };
+  const schedules = [...(scheduleResults || [])].reverse();
 
-  useEffect(() => { load(); }, []);
+  // Auto-expand latest batch when data arrives
+  useEffect(() => {
+    if (schedules.length > 0 && !expanded) {
+      setExpanded(schedules[0].id);
+    }
+  }, [scheduleResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeSchedule = schedules.find(s => s.id === expanded);
   const filteredResults = activeSchedule?.results?.filter(r =>
@@ -57,7 +55,7 @@ export default function ScheduledWorkloads() {
           <h1 className={`text-2xl font-bold ${theme.heading}`}>Scheduled Workloads</h1>
           <p className={`text-sm mt-1 ${theme.subtext}`}>View allocation results from the scheduler</p>
         </div>
-        <button onClick={load} className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl border font-medium transition-all ${theme.btnSecondary}`}>
+        <button onClick={refresh} className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl border font-medium transition-all ${theme.btnSecondary}`}>
           <RefreshCw size={15} /> Refresh
         </button>
       </div>
@@ -72,9 +70,14 @@ export default function ScheduledWorkloads() {
                 ? 'border-cyan-500/40 bg-cyan-500/10'
                 : 'border-white/8 hover:border-white/15'
             }`}>
-            <div>
+            <div className="flex items-center gap-2">
               <span className={`font-medium text-sm ${theme.heading}`}>{s.filename}</span>
-              <span className={`text-xs ml-3 ${theme.subtext}`}>{new Date(s.scheduledAt).toLocaleString()}</span>
+              {s.isEmergency && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+                  EMERGENCY
+                </span>
+              )}
+              <span className={`text-xs ml-1 ${theme.subtext}`}>{new Date(s.scheduledAt).toLocaleString()}</span>
             </div>
             <div className="flex items-center gap-3">
               <span className="text-xs text-emerald-500 font-medium">{s.summary?.accepted} accepted</span>
@@ -142,7 +145,7 @@ export default function ScheduledWorkloads() {
                     <td className="py-2.5 px-3">
                       <span className={`badge ${priorityColors[r.priority] || ''}`}>{r.priority}</span>
                     </td>
-                    <td className="py-2.5 px-3 font-medium text-emerald-500">${r.price}</td>
+                    <td className="py-2.5 px-3 font-medium text-emerald-500">${r.predictedPrice ?? r.revenue ?? '-'}</td>
                     <td className={`py-2.5 px-3 text-xs whitespace-nowrap ${theme.subtext}`}>
                       {r.startTime !== '-' ? new Date(r.startTime).toLocaleTimeString() : '-'}
                     </td>

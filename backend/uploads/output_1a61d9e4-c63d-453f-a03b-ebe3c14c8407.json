@@ -1,0 +1,36 @@
+{
+  "batchId": "1a61d9e4-c63d-453f-a03b-ebe3c14c8407",
+  "summary": {
+    "total": 1,
+    "accepted": 1,
+    "rejected": 0,
+    "preempted": 0,
+    "totalEnergy": 2,
+    "totalRevenue": 405,
+    "totalProfit": 298,
+    "cpuUtilization": 0.3,
+    "usedCPU": 20,
+    "usedMemory": 8,
+    "totalCPU": 8000,
+    "totalMemory": 32000
+  },
+  "results": [
+    {
+      "workloadId": "emergency-001",
+      "cpu": 20,
+      "memory": 8,
+      "duration": 1,
+      "server": "SRV-01",
+      "status": "Accepted",
+      "priority": "emergency",
+      "energyCost": 2,
+      "profit": 298,
+      "predictedPrice": 405,
+      "revenue": 405,
+      "energy": 2,
+      "startTime": "2026-03-24T16:02:22.436Z",
+      "endTime": "2026-03-24T17:02:22.436Z",
+      "reason": "accepted"
+    }
+  ]
+}

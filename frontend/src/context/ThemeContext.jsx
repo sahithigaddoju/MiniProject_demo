@@ -157,11 +157,8 @@ export const themes = {
 export function ThemeProvider({ children }) {
   const [themeKey, setThemeKey] = useState(() => {
     const saved = localStorage.getItem('cloudopt-theme');
-    if (!saved || saved === 'dark') {
-      localStorage.setItem('cloudopt-theme', 'default');
-      return 'default';
-    }
-    return saved;
+    // Default to 'default' theme if nothing saved or invalid key
+    return (saved && themes[saved]) ? saved : 'default';
   });
 
   const theme  = themes[themeKey]      || themes.default;

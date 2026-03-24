@@ -1,19 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import api from '../api';
+import React from 'react';
 import { useTheme } from '../context/ThemeContext';
+import { useDashboard } from '../context/DashboardContext';
 import { Loader2, ExternalLink, RefreshCw, FileText, AlertTriangle } from 'lucide-react';
 
 export default function History() {
   const { theme } = useTheme();
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  const load = () => {
-    setLoading(true);
-    api.get('/history').then(res => setHistory(res.data)).finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
+  const { history, loading, refresh } = useDashboard();
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -28,7 +20,7 @@ export default function History() {
           <h1 className={`text-2xl font-bold ${theme.heading}`}>History</h1>
           <p className={`text-sm mt-1 ${theme.subtext}`}>All uploaded workload batches and their scheduling outcomes</p>
         </div>
-        <button onClick={load} className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl border font-medium transition-all ${theme.btnSecondary}`}>
+        <button onClick={refresh} className={`flex items-center gap-2 text-sm px-4 py-2 rounded-xl border font-medium transition-all ${theme.btnSecondary}`}>
           <RefreshCw size={15} /> Refresh
         </button>
       </div>

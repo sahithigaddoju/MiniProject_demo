@@ -68,22 +68,23 @@ router.get('/dashboard/trends', requireAuth, (req, res) => {
 
 // GET /api/schedule/dashboard/workload-status
 router.get('/dashboard/workload-status', requireAuth, (req, res) => {
+  // Always count pending uploads regardless of whether scheduling has run
+  const pending = db.workloads
+    .filter(b => b.status === 'pending')
+    .reduce((s, b) => s + b.workloads.length, 0);
+
   if (db.scheduleResults.length === 0) {
-    // Count pending uploads that haven't been scheduled yet
-    const pending = db.workloads.filter(b => b.status === 'pending')
-                                .reduce((s, b) => s + b.workloads.length, 0);
     return res.json({ total: pending, scheduled: 0, rejected: 0, preempted: 0, pending });
   }
 
-  // Use the LATEST batch result only
   const latest = db.scheduleResults[db.scheduleResults.length - 1];
   const s      = latest.summary;
   const data   = {
-    total:     s.total     ?? 0,
+    total:     (s.total ?? 0) + pending,
     scheduled: s.accepted  ?? 0,
     rejected:  s.rejected  ?? 0,
     preempted: s.preempted ?? 0,
-    pending:   0,
+    pending,
   };
   console.log('[Dashboard/workload-status]', data);
   res.json(data);

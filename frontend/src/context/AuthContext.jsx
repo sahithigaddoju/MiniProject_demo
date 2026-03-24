@@ -1,19 +1,29 @@
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  // Read localStorage once synchronously — no async, no double render
   const [user, setUser] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('user')); } catch { return null; }
+    try {
+      const token    = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      if (token && userData) return userData;
+      return null;
+    } catch {
+      return null;
+    }
   });
 
   const login = (token, userData) => {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
+    console.log('[Auth] Logged in:', userData.name);
   };
 
-  const logout = () => {
+  const logout = (reason = 'manual') => {
+    console.log('[Auth] Logged out — reason:', reason);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
@@ -26,4 +36,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

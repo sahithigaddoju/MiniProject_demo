@@ -4,8 +4,16 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <BrowserRouter>
     <App />
   </BrowserRouter>
 );
+
+// Fade in once React has painted — eliminates white/black flash
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    document.getElementById('root')?.classList.add('ready');
+  });
+});

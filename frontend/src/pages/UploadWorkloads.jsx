@@ -18,7 +18,7 @@ const FIELD_STYLE = (tokens) => ({
   boxSizing: 'border-box',
 });
 
-function EmergencyModal({ onClose, tokens }) {
+function EmergencyModal({ onClose, tokens, onSuccess }) {
   const [form, setForm] = useState({
     id: '', cpu: '', memory: '', runtime: '', price: '', deadline: '', delayTolerant: false,
   });
@@ -46,7 +46,8 @@ function EmergencyModal({ onClose, tokens }) {
       };
       // Upload as single-workload batch then schedule immediately
       const res = await api.post('/upload/emergency', { workload });
-      toast.success('Emergency workload injected & scheduled!');
+      toast.success('Emergency workload injected & rescheduled!');
+      onSuccess(res.data);
       onClose();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Injection failed');
@@ -183,6 +184,12 @@ export default function UploadWorkloads() {
   const navigate = useNavigate();
   const { refresh: refreshDashboard } = useDashboard();
 
+  const handleEmergencySuccess = async (data) => {
+    console.log('[Emergency] Injection result:', data.summary);
+    await refreshDashboard();
+    navigate('/app/scheduled');
+  };
+
   const handleFile = (f) => {
     const ext = f.name.split('.').pop().toLowerCase();
     if (!['csv', 'json'].includes(ext)) { toast.error('Only CSV or JSON files are supported'); return; }
@@ -201,6 +208,8 @@ export default function UploadWorkloads() {
       const res = await api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setUploadResult(res.data);
       toast.success(`Uploaded ${res.data.count} workloads`);
+      // Refresh dashboard so pending count shows immediately
+      refreshDashboard();
     } catch (err) { toast.error(err.response?.data?.error || 'Upload failed'); }
     finally { setUploading(false); }
   };
@@ -212,7 +221,7 @@ export default function UploadWorkloads() {
       await api.post(`/schedule/run/${uploadResult.batchId}`);
       toast.success('Scheduling complete! Dashboard updated.');
       await refreshDashboard();
-      navigate('/app/scheduled');
+      navigate('/app');           // go to dashboard to see updated metrics
     } catch (err) { toast.error(err.response?.data?.error || 'Scheduling failed'); }
     finally { setScheduling(false); }
   };
@@ -232,7 +241,7 @@ export default function UploadWorkloads() {
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      {modalOpen && <EmergencyModal onClose={() => setModalOpen(false)} tokens={tokens} />}
+      {modalOpen && <EmergencyModal onClose={() => setModalOpen(false)} tokens={tokens} onSuccess={handleEmergencySuccess} />}
 
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap' }}>

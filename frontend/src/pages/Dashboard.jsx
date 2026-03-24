@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+﻿import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import { useTheme } from '../context/ThemeContext';
 import {
@@ -91,7 +91,7 @@ export default function Dashboard() {
   const SPEEDS = { slow: 4000, normal: 2500, fast: 1000 };
 
   useEffect(() => {
-    console.log('[Dashboard] mounting — fetching data');
+    console.log('[Dashboard] mounting ΓÇö fetching data');
     refresh();
   }, []);
 
@@ -135,7 +135,7 @@ export default function Dashboard() {
         const last    = prev[prev.length - 1];
         const baseE   = last ? last.energy  : (metrics?.energyConsumed ?? 5);
         const baseR   = last ? last.revenue : (metrics?.revenue        ?? 8);
-        // small random walk ±8% of current value
+        // small random walk ┬▒8% of current value
         const jitter  = v => Math.max(0.01, v * (1 + (Math.random() - 0.5) * 0.16));
         const energy  = parseFloat(jitter(baseE).toFixed(3));
         const revenue = parseFloat((energy * (0.8 + Math.random() * 0.4)).toFixed(3));
@@ -163,11 +163,12 @@ export default function Dashboard() {
   })();
   const trendData = baseTrendData;
 
-  // Donut data
+  // Donut data — include pending so uploaded-not-yet-scheduled workloads show up
   const donutData = workloadStatus ? [
     { name: 'Scheduled', value: workloadStatus.scheduled || 0, color: '#22d3ee' },
+    { name: 'Pending',   value: workloadStatus.pending   || 0, color: '#f59e0b' },
     { name: 'Rejected',  value: (workloadStatus.rejected || 0) + (workloadStatus.preempted || 0), color: '#ef4444' },
-  ] : [];
+  ].filter(d => d.value > 0) : [];
 
   // Workload distribution bar data
   const distData = workloadStatus ? [
@@ -298,7 +299,7 @@ export default function Dashboard() {
       </LineChart>
     );
 
-    // area — default, matches reference
+    // area ΓÇö default, matches reference
     return (
       <AreaChart {...common}>
         {defs}{grid}{axes}{tip}{refLine}
@@ -326,7 +327,7 @@ export default function Dashboard() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', transition: 'all 0.3s' }}>
 
-      {/* ── Header ── */}
+      {/* ΓöÇΓöÇ Header ΓöÇΓöÇ */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: tokens.textPrimary, margin: 0 }}>Platform Analytics</h1>
@@ -355,15 +356,18 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Metric cards ── */}
+      {/* ΓöÇΓöÇ Metric cards ΓöÇΓöÇ */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
         <MetricCard tokens={tokens} icon={Activity}   iconColor="#22d3ee" iconBg="rgba(34,211,238,0.12)"  value={metrics?.cpuUtilization ?? '0.0'} label="CPU Utilization (%)" />
         <MetricCard tokens={tokens} icon={Zap}        iconColor="#a855f7" iconBg="rgba(168,85,247,0.12)"  value={metrics?.energyConsumed ?? '0.00'} label="Energy Consumed (kWh)" />
         <MetricCard tokens={tokens} icon={DollarSign} iconColor="#10b981" iconBg="rgba(16,185,129,0.12)"  value={metrics?.revenue ?? '0.00'} unit="$" label="Total Revenue" />
-        <MetricCard tokens={tokens} icon={XCircle}    iconColor="#ef4444" iconBg="rgba(239,68,68,0.12)"   value={metrics?.rejectedCount ?? 0} label="Rejected / Preempted" />
+        {(workloadStatus?.pending > 0 && !workloadStatus?.scheduled)
+          ? <MetricCard tokens={tokens} icon={Loader2} iconColor="#f59e0b" iconBg="rgba(245,158,11,0.12)" value={workloadStatus.pending} label="Pending (awaiting schedule)" />
+          : <MetricCard tokens={tokens} icon={XCircle} iconColor="#ef4444" iconBg="rgba(239,68,68,0.12)"  value={metrics?.rejectedCount ?? 0} label="Rejected / Preempted" />
+        }
       </div>
 
-      {/* ── Row 2: Trend + Donut ── */}
+      {/* ΓöÇΓöÇ Row 2: Trend + Donut ΓöÇΓöÇ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1rem' }}>
 
         {/* Energy & Revenue Trend */}
@@ -392,7 +396,7 @@ export default function Dashboard() {
               }}>
                 <Radio size={11} /> Live
               </button>
-              {/* Speed pills — only when live */}
+              {/* Speed pills ΓÇö only when live */}
               {liveMode && ['slow','normal','fast'].map(s => (
                 <Pill key={s} tokens={tokens} active={liveSpeed === s} onClick={() => setLiveSpeed(s)}>
                   {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -473,7 +477,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── Row 3: Workload Distribution + CPU Gauge ── */}
+      {/* ΓöÇΓöÇ Row 3: Workload Distribution + CPU Gauge ΓöÇΓöÇ */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '1rem' }}>
         <div style={card}>
           <div style={{ fontWeight: 600, color: tokens.textPrimary, fontSize: '0.95rem', marginBottom: '1rem' }}>Workload Distribution</div>

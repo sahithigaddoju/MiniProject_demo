@@ -100,7 +100,7 @@ router.post('/', requireAuth, upload.single('file'), (req, res) => {
   });
 });
 
-// POST /api/upload/emergency — inject a single emergency workload and schedule immediately
+// POST /api/upload/emergency — inject a single emergency workload, merge with ALL existing, reschedule
 router.post('/emergency', requireAuth, (req, res) => {
   const w = req.body.workload;
   if (!w || !w.id || !w.cpu || !w.memory || !w.duration) {
@@ -108,37 +108,77 @@ router.post('/emergency', requireAuth, (req, res) => {
   }
 
   const workload = normalizeCanonical(w, true);
-  const batchId  = uuidv4();
-  const entry    = {
-    id:          batchId,
-    filename:    `emergency_${w.id}.json`,
-    storedName:  null,
-    fileUrl:     null,
-    workloads:   [workload],
-    uploadedAt:  new Date().toISOString(),
-    isEmergency: true,
-    status:      'pending',
-  };
-  db.workloads.push(entry);
 
-  const { results, summary } = scheduleWorkloads([workload], db.resources);
-  const outputFilename = `output_${batchId}.json`;
-  saveFile(outputFilename, JSON.stringify({ batchId, summary, results }, null, 2));
+  // ── Add emergency workload into the first (or latest) existing batch ─────
+  // We do NOT create a separate batch — the emergency task becomes part of the
+  // unified workload pool so the scheduler treats everything as one dataset.
+  const targetBatch = db.workloads[db.workloads.length - 1];
+  if (targetBatch) {
+    // Avoid duplicate injection if same id is submitted twice
+    const alreadyExists = targetBatch.workloads.some(x => x.id === workload.id);
+    if (!alreadyExists) targetBatch.workloads.push(workload);
+    targetBatch.isEmergency = true;
+  } else {
+    // No prior batches — create a minimal one
+    db.workloads.push({
+      id:          uuidv4(),
+      filename:    `emergency_${w.id}.json`,
+      storedName:  null,
+      fileUrl:     null,
+      workloads:   [workload],
+      uploadedAt:  new Date().toISOString(),
+      isEmergency: true,
+      status:      'pending',
+    });
+  }
 
-  db.scheduleResults.push({
-    id:           uuidv4(),
-    batchId,
-    filename:     entry.filename,
-    inputFileUrl: null,
-    outputFileUrl:getFileUrl(outputFilename),
+  // ── Collect ALL workloads across every batch ─────────────────────────────
+  const allWorkloads = db.workloads.flatMap(b => b.workloads);
+
+  console.log(`[Emergency] Injecting "${workload.id}" — total pool size: ${allWorkloads.length}`);
+
+  // ── Re-run scheduler over the full merged pool ───────────────────────────
+  const { results, summary } = scheduleWorkloads(allWorkloads, db.resources);
+
+  console.log(`[Emergency] Re-schedule — accepted: ${summary.accepted}, rejected: ${summary.rejected}, preempted: ${summary.preempted}`);
+
+  // ── Determine the canonical batch to associate this result with ──────────
+  // Use the first batch (original CSV upload) as the anchor so history stays clean.
+  const anchorBatch    = db.workloads[0];
+  const anchorBatchId  = anchorBatch?.id ?? uuidv4();
+  const outputFilename = `output_emergency_${Date.now()}.json`;
+  saveFile(outputFilename, JSON.stringify({ batchId: anchorBatchId, summary, results }, null, 2));
+
+  const scheduleEntry = {
+    id:            uuidv4(),
+    batchId:       anchorBatchId,
+    filename:      anchorBatch?.filename ?? `emergency_${w.id}.json`,
+    inputFileUrl:  anchorBatch?.fileUrl  ?? null,
+    outputFileUrl: getFileUrl(outputFilename),
     results,
     summary,
-    scheduledAt:  new Date().toISOString(),
-  });
-  entry.status = 'scheduled';
+    scheduledAt:   new Date().toISOString(),
+    isEmergency:   true,
+  };
 
-  console.log('[Emergency] Injected & scheduled:', w.id, summary);
-  res.json({ message: 'Emergency workload injected and scheduled', batchId, summary });
+  // ── Replace the last schedule result so /latest always returns the merged view ──
+  // This prevents the Scheduled Workloads page from showing duplicate entries.
+  if (db.scheduleResults.length > 0) {
+    db.scheduleResults[db.scheduleResults.length - 1] = scheduleEntry;
+  } else {
+    db.scheduleResults.push(scheduleEntry);
+  }
+
+  // Mark all batches as scheduled
+  db.workloads.forEach(b => { b.status = 'scheduled'; });
+
+  res.json({
+    message:     'Emergency workload injected and full reschedule complete',
+    batchId:     anchorBatchId,
+    summary,
+    results,
+    scheduleEntry,
+  });
 });
 
 export default router;
