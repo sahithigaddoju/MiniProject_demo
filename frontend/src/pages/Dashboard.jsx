@@ -6,7 +6,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell, ReferenceLine,
 } from 'recharts';
-import { Activity, Zap, DollarSign, XCircle, RefreshCw, Loader2, Radio } from 'lucide-react';
+import { Activity, Zap, DollarSign, XCircle, RefreshCw, Loader2, Radio, AlertTriangle } from 'lucide-react';
 
 // card and tooltipStyle are derived from tokens inside the component (see below)
 
@@ -163,11 +163,12 @@ export default function Dashboard() {
   })();
   const trendData = baseTrendData;
 
-  // Donut data — include pending so uploaded-not-yet-scheduled workloads show up
+  // Donut — Scheduled / Preempted / Rejected / Pending as separate segments
   const donutData = workloadStatus ? [
     { name: 'Scheduled', value: workloadStatus.scheduled || 0, color: '#22d3ee' },
     { name: 'Pending',   value: workloadStatus.pending   || 0, color: '#f59e0b' },
-    { name: 'Rejected',  value: (workloadStatus.rejected || 0) + (workloadStatus.preempted || 0), color: '#ef4444' },
+    { name: 'Preempted', value: workloadStatus.preempted || 0, color: '#a855f7' },
+    { name: 'Rejected',  value: workloadStatus.rejected  || 0, color: '#ef4444' },
   ].filter(d => d.value > 0) : [];
 
   // Workload distribution bar data
@@ -356,15 +357,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ΓöÇΓöÇ Metric cards ΓöÇΓöÇ */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+      {/* ── Metric cards ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
         <MetricCard tokens={tokens} icon={Activity}   iconColor="#22d3ee" iconBg="rgba(34,211,238,0.12)"  value={metrics?.cpuUtilization ?? '0.0'} label="CPU Utilization (%)" />
         <MetricCard tokens={tokens} icon={Zap}        iconColor="#a855f7" iconBg="rgba(168,85,247,0.12)"  value={metrics?.energyConsumed ?? '0.00'} label="Energy Consumed (kWh)" />
         <MetricCard tokens={tokens} icon={DollarSign} iconColor="#10b981" iconBg="rgba(16,185,129,0.12)"  value={metrics?.revenue ?? '0.00'} unit="$" label="Total Revenue" />
         {(workloadStatus?.pending > 0 && !workloadStatus?.scheduled)
           ? <MetricCard tokens={tokens} icon={Loader2} iconColor="#f59e0b" iconBg="rgba(245,158,11,0.12)" value={workloadStatus.pending} label="Pending (awaiting schedule)" />
-          : <MetricCard tokens={tokens} icon={XCircle} iconColor="#ef4444" iconBg="rgba(239,68,68,0.12)"  value={metrics?.rejectedCount ?? 0} label="Rejected / Preempted" />
+          : <MetricCard tokens={tokens} icon={XCircle} iconColor="#ef4444" iconBg="rgba(239,68,68,0.12)"  value={metrics?.rejectedCount ?? 0} label="Rejected" />
         }
+        <MetricCard tokens={tokens} icon={AlertTriangle} iconColor="#a855f7" iconBg="rgba(168,85,247,0.12)" value={metrics?.preemptedCount ?? 0} label="Preempted" />
       </div>
 
       {/* ΓöÇΓöÇ Row 2: Trend + Donut ΓöÇΓöÇ */}

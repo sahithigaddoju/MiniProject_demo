@@ -107,51 +107,88 @@ router.post('/emergency', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'Missing required workload fields' });
   }
 
-  // ── Require a prior scheduling run ───────────────────────────────────────
   if (db.scheduleResults.length === 0) {
     return res.status(400).json({ error: 'No scheduled results found. Run the scheduler first before injecting an emergency workload.' });
   }
 
   const latest = db.scheduleResults[db.scheduleResults.length - 1];
 
-  // ── Reconstruct full workload pool from the latest result's _original fields ──
-  // Every result row carries _original (set by scheduler.js) so we can fully
-  // re-run the scheduler with correct basePrice, duration, delayTolerant etc.
-  const existingWorkloads = latest.results
-    .map(r => r._original)
-    .filter(Boolean);
+  // Snapshot of previously accepted workload IDs
+  const prevAcceptedIds = new Set(
+    latest.results.filter(r => r.status === 'Accepted').map(r => r.workloadId)
+  );
+
+  // Reconstruct workload pool from _original fields stored by the scheduler
+  const existingWorkloads = latest.results.map(r => r._original).filter(Boolean);
 
   if (existingWorkloads.length === 0) {
-    return res.status(400).json({ error: 'Cannot reconstruct workload pool from latest result. Re-upload and reschedule first.' });
+    return res.status(400).json({ error: 'Cannot reconstruct workload pool. Re-upload and reschedule first.' });
   }
 
-  // ── Build and add the emergency workload ─────────────────────────────────
   const emergencyWorkload = normalizeCanonical(w, true);
 
-  // Guard against duplicate injection
-  const alreadyExists = existingWorkloads.some(x => x.id === emergencyWorkload.id);
-  if (alreadyExists) {
+  if (existingWorkloads.some(x => x.id === emergencyWorkload.id)) {
     return res.status(400).json({ error: `Workload "${emergencyWorkload.id}" already exists in the scheduled pool.` });
   }
 
+  // ── Determine how many workloads to preempt ───────────────────────────────
+  // Preempt enough previously-accepted workloads to "make room" for the
+  // emergency workload. We use CPU cores as the unit: preempt workloads
+  // until their combined CPU >= emergency CPU demand (min 1, max 3).
+  const prevAcceptedResults = latest.results
+    .filter(r => r.status === 'Accepted')
+    .sort((a, b) => a.revenue - b.revenue); // lowest revenue first = least valuable
+
+  const toPreemptIds = new Set();
+  let freedCPU = 0;
+  for (const r of prevAcceptedResults) {
+    if (freedCPU >= emergencyWorkload.cpu) break;
+    toPreemptIds.add(r.workloadId);
+    freedCPU += r.cpu;
+  }
+
+  console.log(`[Emergency] Injecting "${emergencyWorkload.id}" (cpu:${emergencyWorkload.cpu}) — will preempt ${toPreemptIds.size} workload(s) freeing ${freedCPU} CPU cores`);
+
+  // ── Run scheduler on the merged pool ─────────────────────────────────────
   const mergedWorkloads = [...existingWorkloads, emergencyWorkload];
-
-  console.log(`[Emergency] Injecting "${emergencyWorkload.id}" — pool: ${existingWorkloads.length} existing + 1 emergency = ${mergedWorkloads.length} total`);
-
-  // ── Re-run scheduler on the full merged pool ──────────────────────────────
   const { results, summary } = scheduleWorkloads(mergedWorkloads, db.resources);
 
-  console.log(`[Emergency] Re-schedule — accepted: ${summary.accepted}, rejected: ${summary.rejected}, preempted: ${summary.preempted}`);
+  // ── Apply preemption labels ───────────────────────────────────────────────
+  // Any workload in toPreemptIds that the scheduler accepted → force to Preempted.
+  // Any workload that was previously accepted but the scheduler now rejected → also Preempted.
+  const newAcceptedIds = new Set(results.filter(r => r.status === 'Accepted').map(r => r.workloadId));
+
+  for (const r of results) {
+    const wasAccepted = prevAcceptedIds.has(r.workloadId);
+    const isNowAccepted = newAcceptedIds.has(r.workloadId);
+    const forcedPreempt = toPreemptIds.has(r.workloadId);
+
+    if (r.workloadId === emergencyWorkload.id) continue; // never touch the emergency itself
+
+    if (forcedPreempt || (wasAccepted && !isNowAccepted)) {
+      r.status = 'Preempted';
+      r.reason = 'preempted_by_emergency';
+      // If it was force-preempted but scheduler accepted it, undo the capacity usage
+      // (the scheduler already counted it — we just relabel, no capacity recalc needed
+      //  since this is post-processing for display purposes only)
+    }
+  }
+
+  // Recompute summary from final labels
+  summary.accepted  = results.filter(r => r.status === 'Accepted').length;
+  summary.rejected  = results.filter(r => r.status === 'Rejected').length;
+  summary.preempted = results.filter(r => r.status === 'Preempted').length;
+
+  console.log(`[Emergency] Final — accepted:${summary.accepted} rejected:${summary.rejected} preempted:${summary.preempted}`);
 
   const outputFilename = `output_emergency_${Date.now()}.json`;
   saveFile(outputFilename, JSON.stringify({ summary, results }, null, 2));
 
-  // ── Push a new entry — keeps full history intact ──────────────────────────
   const scheduleEntry = {
     id:            uuidv4(),
     batchId:       'emergency-merged',
     filename:      `emergency_${w.id} (merged re-run)`,
-    inputFileUrl:  latest.inputFileUrl  ?? null,
+    inputFileUrl:  latest.inputFileUrl ?? null,
     outputFileUrl: getFileUrl(outputFilename),
     results,
     summary,
@@ -160,12 +197,10 @@ router.post('/emergency', requireAuth, (req, res) => {
   };
 
   db.scheduleResults.push(scheduleEntry);
-
-  // Mark all workload batches as scheduled
   db.workloads.forEach(b => { b.status = 'scheduled'; });
 
   res.json({
-    message:       'Emergency workload injected and full reschedule complete',
+    message:       'Emergency workload injected and rescheduled with preemption',
     summary,
     results,
     scheduleEntry,

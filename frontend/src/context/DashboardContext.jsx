@@ -22,7 +22,8 @@ function deriveFromLatest(latest) {
     cpuUtilization: parseFloat(s.cpuUtilization ?? 0),
     energyConsumed: parseFloat(s.totalEnergy    ?? 0),
     revenue:        parseFloat(s.totalRevenue   ?? 0),
-    rejectedCount:  (s.rejected ?? 0) + (s.preempted ?? 0),
+    rejectedCount:  s.rejected  ?? 0,
+    preemptedCount: s.preempted ?? 0,
   };
 
   // ── trends — bucket accepted workloads into ≤15 points ───────────────────
