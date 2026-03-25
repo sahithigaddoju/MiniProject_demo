@@ -10,16 +10,20 @@ const SERVER_DEFAULT = 500;
 
 export default function ConfigureResources() {
   const { tokens } = useTheme();
-  const [form, setForm]       = useState({ servers: SERVER_DEFAULT, cpuPerServer: 16, memoryPerServer: 64 });
+  const [form, setForm]       = useState(null);   // null until fetched — prevents stale defaults
+  const [saved, setSaved]     = useState(null);   // last confirmed saved values
   const [errors, setErrors]   = useState({});
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
 
   useEffect(() => {
     setLoading(true);
     api.get('/resources')
-      .then(res => setForm(res.data))
-      .catch(() => {})
+      .then(res => {
+        setForm(res.data);
+        setSaved(res.data);   // track what's actually persisted
+      })
+      .catch(() => toast.error('Failed to load current resource configuration'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,20 +46,27 @@ export default function ConfigureResources() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form) return;
     const errs = validate(form);
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
     try {
-      await api.post('/resources', form);
+      const res = await api.post('/resources', form);
+      setSaved(res.data.resources);   // update saved snapshot
       toast.success('Resources saved — next scheduler run will use new capacity');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to save');
     } finally { setSaving(false); }
   };
 
-  const totalCpu = form.servers * form.cpuPerServer;
-  const totalMem = form.servers * form.memoryPerServer;
+  const totalCpu = (form?.servers ?? 0) * (form?.cpuPerServer ?? 0);
+  const totalMem = (form?.servers ?? 0) * (form?.memoryPerServer ?? 0);
   const hasErrors = Object.keys(errors).length > 0;
+  const isDirty = saved && form && (
+    form.servers !== saved.servers ||
+    form.cpuPerServer !== saved.cpuPerServer ||
+    form.memoryPerServer !== saved.memoryPerServer
+  );
 
   const inputStyle = (hasErr) => ({
     width: '100%', padding: '0.6rem 0.9rem', borderRadius: '10px',
@@ -81,6 +92,12 @@ export default function ConfigureResources() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '16rem' }}>
       <Loader2 size={32} style={{ color: tokens.accent, animation: 'spin 1s linear infinite' }} />
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
+
+  if (!form) return (
+    <div style={{ color: tokens.textMuted, textAlign: 'center', padding: '4rem' }}>
+      Failed to load resource configuration. Please refresh.
     </div>
   );
 
@@ -191,13 +208,27 @@ export default function ConfigureResources() {
           </div>
         )}
 
-        <div>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <button type="submit" disabled={hasErrors || saving} style={btn}>
             {saving
               ? <Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} />
               : <Save size={15} />}
             Save Configuration
           </button>
+          {isDirty && (
+            <button
+              type="button"
+              onClick={() => { setForm(saved); setErrors({}); }}
+              style={{
+                padding: '0.6rem 1.1rem', borderRadius: '10px', fontWeight: 600,
+                fontSize: '0.875rem', border: `1px solid ${tokens.divider}`,
+                backgroundColor: 'transparent', color: tokens.textSecondary,
+                cursor: 'pointer', transition: 'all 0.2s',
+              }}
+            >
+              Reset to Saved
+            </button>
+          )}
         </div>
       </form>
 

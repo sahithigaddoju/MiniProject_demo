@@ -182,7 +182,8 @@ export default function UploadWorkloads() {
   const [formatOpen, setFormatOpen] = useState(false);
   const inputRef = useRef();
   const navigate = useNavigate();
-  const { refresh: refreshDashboard } = useDashboard();
+  const { refresh: refreshDashboard, scheduleResults } = useDashboard();
+  const hasScheduled = scheduleResults && scheduleResults.length > 0;
 
   const handleEmergencySuccess = async (data) => {
     console.log('[Emergency] Injection result:', data.summary);
@@ -252,17 +253,21 @@ export default function UploadWorkloads() {
           </p>
         </div>
         <button
-          onClick={() => setModalOpen(true)}
+          onClick={() => hasScheduled ? setModalOpen(true) : toast.error('Run the scheduler first before injecting an emergency workload.')}
+          title={hasScheduled ? 'Inject an emergency workload into the current schedule' : 'Upload and run the scheduler first'}
           style={{
             display: 'flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.6rem 1.1rem', borderRadius: '10px', fontWeight: 600, fontSize: '0.875rem',
-            backgroundColor: 'rgba(239,68,68,0.12)', color: '#ef4444',
-            border: '1px solid rgba(239,68,68,0.35)', cursor: 'pointer',
+            backgroundColor: hasScheduled ? 'rgba(239,68,68,0.12)' : 'rgba(239,68,68,0.05)',
+            color: hasScheduled ? '#ef4444' : 'rgba(239,68,68,0.4)',
+            border: `1px solid ${hasScheduled ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.15)'}`,
+            cursor: hasScheduled ? 'pointer' : 'not-allowed',
             transition: 'all 0.2s', whiteSpace: 'nowrap',
           }}
         >
           <AlertTriangle size={15} />
           Inject Emergency Task
+          {!hasScheduled && <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>(schedule first)</span>}
         </button>
       </div>
 

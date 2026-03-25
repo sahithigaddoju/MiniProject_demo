@@ -75,11 +75,22 @@ export function scheduleWorkloads(workloads, resources) {
       energyCost:     parseFloat(ec.toFixed(4)),
       profit:         parseFloat(pr.toFixed(4)),
       predictedPrice: parseFloat(pp.toFixed(4)),
-      revenue:        parseFloat(pp.toFixed(4)),   // revenue = what we charge
-      energy:         parseFloat(ec.toFixed(4)),   // alias used by dashboard trends
+      revenue:        parseFloat(pp.toFixed(4)),
+      energy:         parseFloat(ec.toFixed(4)),
       startTime:      now.toISOString(),
       endTime:        new Date(now.getTime() + dur * 3600000).toISOString(),
       reason:         'accepted',
+      // Preserve original workload so emergency re-scheduling can reconstruct the full pool
+      _original: {
+        id:            w.id,
+        cpu:           w.cpu,
+        memory:        w.memory,
+        duration:      dur,
+        basePrice:     w.basePrice     || 0,
+        deadline:      w.deadline      || null,
+        delayTolerant: w.delayTolerant || false,
+        priority:      w.priority      || 'normal',
+      },
     });
   }
 
@@ -102,6 +113,17 @@ export function scheduleWorkloads(workloads, resources) {
       startTime:      '-',
       endTime:        '-',
       reason,
+      // Preserve original workload so emergency re-scheduling can reconstruct the full pool
+      _original: {
+        id:            w.id,
+        cpu:           w.cpu,
+        memory:        w.memory,
+        duration:      w.duration      || 1,
+        basePrice:     w.basePrice     || 0,
+        deadline:      w.deadline      || null,
+        delayTolerant: w.delayTolerant || false,
+        priority:      w.priority      || 'normal',
+      },
     });
   }
 
