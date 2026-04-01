@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useDashboard } from '../context/DashboardContext';
-import { Loader2, ExternalLink, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, ExternalLink, RefreshCw, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import api from '../api';
 
 const statusColors = {
   Accepted: 'bg-emerald-500/15 text-emerald-400',
@@ -34,6 +35,21 @@ export default function ScheduledWorkloads() {
   const filteredResults = activeSchedule?.results?.filter(r =>
     filter === 'All' || r.status === filter
   ) || [];
+
+  const handleDownloadCsv = async () => {
+    if (!activeSchedule) return;
+    try {
+      const res = await api.get(`/schedule/export/${activeSchedule.id}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `schedule_${activeSchedule.scheduledAt?.slice(0,10)}_${activeSchedule.id.slice(0,8)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('CSV download failed', e);
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -121,6 +137,10 @@ export default function ScheduledWorkloads() {
                 <ExternalLink size={13} /> Download Output
               </a>
             )}
+            <button onClick={handleDownloadCsv}
+              className="flex items-center gap-1.5 text-xs text-emerald-400 hover:underline">
+              <Download size={13} /> Download CSV
+            </button>
           </div>
 
           <div className="overflow-x-auto">

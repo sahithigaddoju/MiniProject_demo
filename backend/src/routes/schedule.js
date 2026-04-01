@@ -4,6 +4,7 @@ import db from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { scheduleWorkloads } from '../scheduler.js';
 import { saveFile, getFileUrl } from '../storage.js';
+import { persistScheduleRun } from '../supabase.js';
 
 const router = express.Router();
 
@@ -116,6 +117,9 @@ router.post('/run/:batchId', requireAuth, (req, res) => {
   db.scheduleResults.push(scheduleEntry);
   batch.status = 'scheduled';
 
+  // Persist to Supabase (fire-and-forget)
+  persistScheduleRun(scheduleEntry);
+
   console.log('[Scheduler] Batch', batch.id, 'done:', summary);
   res.json(scheduleEntry);
 });
@@ -145,6 +149,40 @@ router.get('/stats/overview', requireAuth, (req, res) => {
     accepted,
     batches: db.scheduleResults.length,
   });
+});
+
+// GET /api/schedule/export/:id — download results as CSV (same columns as website table)
+router.get('/export/:id', requireAuth, (req, res) => {
+  const entry = req.params.id === 'latest'
+    ? db.scheduleResults[db.scheduleResults.length - 1]
+    : db.scheduleResults.find(s => s.id === req.params.id);
+
+  if (!entry) return res.status(404).json({ error: 'Not found' });
+
+  const headers = ['Workload ID','CPU','Memory (GB)','Server','Status','Priority','Price ($)','Energy Cost','Profit','Start Time','End Time','Reason'];
+  const rows = entry.results.map(r => [
+    r.workloadId,
+    r.cpu,
+    r.memory,
+    r.server,
+    r.status,
+    r.priority,
+    r.predictedPrice ?? r.revenue ?? 0,
+    r.energyCost,
+    r.profit,
+    r.startTime !== '-' ? new Date(r.startTime).toLocaleString() : '-',
+    r.endTime   !== '-' ? new Date(r.endTime).toLocaleString()   : '-',
+    r.reason,
+  ]);
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const filename = `schedule_${entry.scheduledAt.slice(0,10)}_${entry.id.slice(0,8)}.csv`;
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
 });
 
 // Get specific schedule result (keep last — /:id catches everything)

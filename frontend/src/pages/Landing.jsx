@@ -1,36 +1,64 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Zap, ArrowRight, ChevronDown } from 'lucide-react';
 
+// ── All styles are inline / light-only — no global theme classes used ─────────
+
+const L = {
+  bg:          '#ffffff',
+  bgAlt:       '#f8fafc',
+  border:      '#e2e8f0',
+  text:        '#0f172a',
+  textSub:     '#475569',
+  textMuted:   '#94a3b8',
+  accent:      '#06b6d4',   // cyan-500
+  accentHover: '#22d3ee',   // cyan-400
+  accentBg:    'rgba(6,182,212,0.08)',
+  accentBorder:'rgba(6,182,212,0.3)',
+  cardBg:      '#f1f5f9',
+  cardBorder:  '#e2e8f0',
+  cardHover:   '#e8f4f8',
+};
+
 function Navbar() {
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-md border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+      backgroundColor: 'rgba(255,255,255,0.85)',
+      backdropFilter: 'blur(12px)',
+      borderBottom: `1px solid ${L.border}`,
+    }}>
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 1.5rem', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-cyan-500 rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/40">
-            <Zap size={16} className="text-black" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ width: 32, height: 32, backgroundColor: L.accent, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={16} color="#fff" />
           </div>
-          <span className="font-bold text-white text-lg tracking-tight">CloudOpt</span>
+          <span style={{ fontWeight: 700, fontSize: '1.1rem', color: L.text, letterSpacing: '-0.02em' }}>CloudOpt</span>
         </div>
 
         {/* Center nav */}
-        <div className="hidden md:flex items-center gap-8">
+        <div style={{ display: 'flex', gap: '2rem' }}>
           {['Features', 'How It Works', 'Scale'].map(link => (
             <a key={link} href={`#${link.toLowerCase().replace(/ /g, '-')}`}
-              className="text-sm text-slate-400 hover:text-white transition-colors">
+              style={{ fontSize: '0.875rem', color: L.textSub, textDecoration: 'none', transition: 'color 0.15s' }}
+              onMouseEnter={e => e.target.style.color = L.text}
+              onMouseLeave={e => e.target.style.color = L.textSub}>
               {link}
             </a>
           ))}
         </div>
 
-
         {/* Right */}
-        <div className="flex items-center gap-3">
-          <Link to="/login" className="text-sm font-medium text-slate-300 hover:text-white transition-colors px-3 py-1.5">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <Link to="/login" style={{ fontSize: '0.875rem', fontWeight: 500, color: L.textSub, textDecoration: 'none', padding: '0.375rem 0.75rem' }}>
             Sign In
           </Link>
-          <Link to="/login"
-            className="text-sm font-semibold bg-cyan-500 hover:bg-cyan-400 text-black px-5 py-2 rounded-lg transition-all shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/40">
+          <Link to="/login" style={{
+            fontSize: '0.875rem', fontWeight: 600, backgroundColor: L.accent, color: '#fff',
+            padding: '0.5rem 1.25rem', borderRadius: 8, textDecoration: 'none',
+            boxShadow: '0 2px 12px rgba(6,182,212,0.3)', transition: 'all 0.15s',
+          }}>
             Get Started
           </Link>
         </div>
@@ -41,71 +69,82 @@ function Navbar() {
 
 function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center text-center px-6 pt-24 overflow-hidden bg-black">
-      {/* Grid background */}
-      <div className="absolute inset-0"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)`,
-          backgroundSize: '60px 60px',
-        }}
-      />
-      {/* Radial glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+    <section style={{
+      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', textAlign: 'center',
+      padding: '6rem 1.5rem 4rem', position: 'relative', overflow: 'hidden',
+      backgroundColor: L.bg,
+    }}>
+      {/* Subtle grid */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        backgroundImage: `linear-gradient(${L.border} 1px, transparent 1px), linear-gradient(90deg, ${L.border} 1px, transparent 1px)`,
+        backgroundSize: '60px 60px', opacity: 0.5,
+      }} />
+      {/* Soft glow */}
+      <div style={{
+        position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
+        width: 600, height: 400, backgroundColor: 'rgba(6,182,212,0.06)',
+        borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none',
+      }} />
 
-      <div className="relative z-10 max-w-3xl mx-auto">
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 768, margin: '0 auto' }}>
         {/* Badge */}
-        <div className="inline-flex items-center gap-2 border border-cyan-500/40 bg-cyan-500/10 text-cyan-400 text-xs font-semibold tracking-widest uppercase rounded-full px-4 py-1.5 mb-8">
-          <Zap size={12} />
-          Energy-Aware Cloud Scheduler
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+          border: `1px solid ${L.accentBorder}`, backgroundColor: L.accentBg,
+          color: L.accent, fontSize: '0.7rem', fontWeight: 700,
+          letterSpacing: '0.1em', textTransform: 'uppercase',
+          borderRadius: 9999, padding: '0.375rem 1rem', marginBottom: '2rem',
+        }}>
+          <Zap size={11} /> Energy-Aware Cloud Scheduler
         </div>
 
-        {/* Heading */}
-        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight text-white mb-4 tracking-tight">
+        <h1 style={{ fontSize: 'clamp(2.5rem,6vw,4.5rem)', fontWeight: 800, lineHeight: 1.1, color: L.text, margin: '0 0 0.5rem', letterSpacing: '-0.03em' }}>
           Schedule smarter.
         </h1>
-        <h1 className="text-5xl md:text-7xl font-extrabold leading-tight mb-8 tracking-tight text-cyan-400"
-          style={{ textShadow: '0 0 40px rgba(34,211,238,0.4)' }}>
+        <h1 style={{ fontSize: 'clamp(2.5rem,6vw,4.5rem)', fontWeight: 800, lineHeight: 1.1, color: L.accent, margin: '0 0 2rem', letterSpacing: '-0.03em' }}>
           Save energy.
         </h1>
 
-        {/* Description */}
-        <p className="text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto mb-10 text-center">
+        <p style={{ color: L.textSub, fontSize: '1.1rem', lineHeight: 1.7, maxWidth: 560, margin: '0 auto 2.5rem' }}>
           CloudOpt is a full-stack data center scheduling platform that allocates
           cloud workloads using a multi-dimensional knapsack algorithm —
           minimizing energy costs while maximizing revenue.
         </p>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/login"
-            className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-cyan-500/30 hover:shadow-cyan-400/50 text-sm">
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link to="/login" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            backgroundColor: L.accent, color: '#fff', fontWeight: 600,
+            padding: '0.875rem 2rem', borderRadius: 12, textDecoration: 'none',
+            fontSize: '0.875rem', boxShadow: '0 4px 20px rgba(6,182,212,0.35)',
+          }}>
             Open Dashboard <ArrowRight size={16} />
           </Link>
-          <a href="#features"
-            className="inline-flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-semibold px-8 py-3.5 rounded-xl transition-all text-sm">
+          <a href="#features" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            backgroundColor: L.cardBg, color: L.text, fontWeight: 600,
+            padding: '0.875rem 2rem', borderRadius: 12, textDecoration: 'none',
+            fontSize: '0.875rem', border: `1px solid ${L.border}`,
+          }}>
             Explore Features <ChevronDown size={16} />
           </a>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="relative z-10 mt-20 flex flex-col sm:flex-row items-center justify-center gap-12 sm:gap-20">
-        {[
-          { val: '50K+', label: 'Max Servers' },
-          { val: '< 1ms', label: 'Schedule Time' },
-          { val: 'JWT', label: 'Auth Secured' },
-        ].map(({ val, label }) => (
-          <div key={label} className="text-center">
-            <div className="text-3xl font-extrabold text-white">{val}</div>
-            <div className="text-slate-500 text-sm mt-1">{label}</div>
+      <div style={{ position: 'relative', zIndex: 1, marginTop: '5rem', display: 'flex', gap: '4rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {[['50K+', 'Max Servers'], ['< 1ms', 'Schedule Time'], ['JWT', 'Auth Secured']].map(([val, label]) => (
+          <div key={label} style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '1.875rem', fontWeight: 800, color: L.text }}>{val}</div>
+            <div style={{ color: L.textMuted, fontSize: '0.875rem', marginTop: '0.25rem' }}>{label}</div>
           </div>
         ))}
       </div>
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 text-slate-600">
-        <ChevronDown size={20} className="animate-bounce" />
+      <div style={{ position: 'absolute', bottom: 32, left: '50%', transform: 'translateX(-50%)', color: L.textMuted }}>
+        <ChevronDown size={20} style={{ animation: 'bounce 1.5s infinite' }} />
       </div>
     </section>
   );
@@ -121,18 +160,25 @@ function Features() {
     { icon: '📈', title: 'Revenue Analytics', desc: 'Track revenue, energy savings, and workload acceptance rates from a unified dashboard.' },
   ];
   return (
-    <section id="features" className="bg-black py-24 px-6 border-t border-white/5">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-3">Everything You Need</h2>
-          <p className="text-slate-500 max-w-lg mx-auto">A complete platform for energy-aware workload management in modern data centers.</p>
+    <section id="features" style={{ backgroundColor: L.bgAlt, padding: '6rem 1.5rem', borderTop: `1px solid ${L.border}` }}>
+      <div style={{ maxWidth: 1152, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: L.text, margin: '0 0 0.75rem' }}>Everything You Need</h2>
+          <p style={{ color: L.textSub, maxWidth: 480, margin: '0 auto' }}>A complete platform for energy-aware workload management in modern data centers.</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.25rem' }}>
           {items.map(({ icon, title, desc }) => (
-            <div key={title} className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 hover:border-cyan-500/30 hover:bg-white/[0.05] transition-all group">
-              <div className="text-2xl mb-4">{icon}</div>
-              <h3 className="font-semibold text-white mb-2 text-sm">{title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+            <div key={title} style={{
+              backgroundColor: L.bg, border: `1px solid ${L.cardBorder}`,
+              borderRadius: 16, padding: '1.5rem',
+              transition: 'border-color 0.2s, box-shadow 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = L.accentBorder; e.currentTarget.style.boxShadow = '0 4px 20px rgba(6,182,212,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = L.cardBorder; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>{icon}</div>
+              <h3 style={{ fontWeight: 600, color: L.text, marginBottom: '0.5rem', fontSize: '0.9rem' }}>{title}</h3>
+              <p style={{ color: L.textSub, fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>{desc}</p>
             </div>
           ))}
         </div>
@@ -149,20 +195,23 @@ function HowItWorks() {
     { n: '04', title: 'View Results', desc: 'Review allocations, pricing, energy savings, and download output reports.' },
   ];
   return (
-    <section id="how-it-works" className="bg-black py-24 px-6 border-t border-white/5">
-      <div className="max-w-5xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-3">How It Works</h2>
-          <p className="text-slate-500">Four simple steps to optimized workload scheduling.</p>
+    <section id="how-it-works" style={{ backgroundColor: L.bg, padding: '6rem 1.5rem', borderTop: `1px solid ${L.border}` }}>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: L.text, margin: '0 0 0.75rem' }}>How It Works</h2>
+          <p style={{ color: L.textSub }}>Four simple steps to optimized workload scheduling.</p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '2rem' }}>
           {steps.map(({ n, title, desc }) => (
-            <div key={n} className="text-center">
-              <div className="w-14 h-14 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-2xl flex items-center justify-center text-lg font-bold mx-auto mb-4">
-                {n}
-              </div>
-              <h3 className="font-semibold text-white mb-2 text-sm">{title}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed">{desc}</p>
+            <div key={n} style={{ textAlign: 'center' }}>
+              <div style={{
+                width: 56, height: 56, backgroundColor: L.accentBg,
+                border: `1px solid ${L.accentBorder}`, color: L.accent,
+                borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1.1rem', fontWeight: 700, margin: '0 auto 1rem',
+              }}>{n}</div>
+              <h3 style={{ fontWeight: 600, color: L.text, marginBottom: '0.5rem', fontSize: '0.9rem' }}>{title}</h3>
+              <p style={{ color: L.textSub, fontSize: '0.875rem', lineHeight: 1.6, margin: 0 }}>{desc}</p>
             </div>
           ))}
         </div>
@@ -173,13 +222,21 @@ function HowItWorks() {
 
 function Scale() {
   return (
-    <section id="scale" className="bg-black py-20 px-6 border-t border-white/5">
-      <div className="max-w-3xl mx-auto text-center">
-        <div className="bg-gradient-to-br from-cyan-500/10 to-transparent border border-cyan-500/20 rounded-3xl p-12">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Optimize?</h2>
-          <p className="text-slate-400 mb-8">Join administrators already saving energy and maximizing revenue with CloudOpt.</p>
-          <Link to="/login"
-            className="inline-flex items-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-black font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-cyan-500/30 text-sm">
+    <section id="scale" style={{ backgroundColor: L.bgAlt, padding: '5rem 1.5rem', borderTop: `1px solid ${L.border}` }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+        <div style={{
+          background: `linear-gradient(135deg, ${L.accentBg}, ${L.bgAlt})`,
+          border: `1px solid ${L.accentBorder}`,
+          borderRadius: 24, padding: '3rem',
+        }}>
+          <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: L.text, margin: '0 0 1rem' }}>Ready to Optimize?</h2>
+          <p style={{ color: L.textSub, marginBottom: '2rem' }}>Join administrators already saving energy and maximizing revenue with CloudOpt.</p>
+          <Link to="/login" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            backgroundColor: L.accent, color: '#fff', fontWeight: 600,
+            padding: '0.875rem 2rem', borderRadius: 12, textDecoration: 'none',
+            fontSize: '0.875rem', boxShadow: '0 4px 20px rgba(6,182,212,0.3)',
+          }}>
             Open Dashboard <ArrowRight size={16} />
           </Link>
         </div>
@@ -190,27 +247,41 @@ function Scale() {
 
 function Footer() {
   return (
-    <footer className="bg-black border-t border-white/5 py-8 px-6 text-center">
-      <div className="flex items-center justify-center gap-2 mb-2">
-        <div className="w-6 h-6 bg-cyan-500 rounded-md flex items-center justify-center">
-          <Zap size={12} className="text-black" />
+    <footer style={{ backgroundColor: L.bg, borderTop: `1px solid ${L.border}`, padding: '2rem 1.5rem', textAlign: 'center' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+        <div style={{ width: 24, height: 24, backgroundColor: L.accent, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Zap size={12} color="#fff" />
         </div>
-        <span className="text-white font-semibold text-sm">CloudOpt</span>
+        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: L.text }}>CloudOpt</span>
       </div>
-      <p className="text-slate-600 text-xs">© {new Date().getFullYear()} CloudOpt. Energy-aware workload scheduling for modern data centers.</p>
+      <p style={{ color: L.textMuted, fontSize: '0.75rem', margin: 0 }}>
+        © {new Date().getFullYear()} CloudOpt. Energy-aware workload scheduling for modern data centers.
+      </p>
     </footer>
   );
 }
 
 export default function Landing() {
+  // Override body background for this page only — restore on unmount
+  useEffect(() => {
+    const prev = document.body.style.backgroundColor;
+    const prevColor = document.body.style.color;
+    document.body.style.backgroundColor = '#ffffff';
+    document.body.style.color = '#0f172a';
+    return () => {
+      document.body.style.backgroundColor = prev;
+      document.body.style.color = prevColor;
+    };
+  }, []);
   return (
-    <div className="min-h-screen bg-black">
+    <div style={{ minHeight: '100vh', backgroundColor: L.bg, fontFamily: 'inherit' }}>
       <Navbar />
       <Hero />
       <Features />
       <HowItWorks />
       <Scale />
       <Footer />
+      <style>{`@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }`}</style>
     </div>
   );
 }
