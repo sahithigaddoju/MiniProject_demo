@@ -214,6 +214,17 @@ export default function UploadWorkloads() {
         </button>
       </div>
 
+      {/* Administrator note */}
+      <div style={{ marginBottom: '1.25rem', padding: '0.875rem 1.1rem', borderRadius: '12px', backgroundColor: '#fffbeb', border: '1px solid #fcd34d', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+        <span style={{ fontSize: '1rem', flexShrink: 0 }}>📋</span>
+        <div>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: '0.82rem', color: '#92400e', marginBottom: '0.25rem' }}>Note to Administrator</p>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: '#78350f', lineHeight: 1.6 }}>
+            In real-world cloud data centers, only a percentage of total servers (e.g., 70%) is typically utilized to handle failures or emergency workload shifts. Administrators are advised to upload workloads considering only the usable percentage of total server capacity.
+          </p>
+        </div>
+      </div>
+
       {/* Two-column grid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.25rem', alignItems: 'start' }}>
 
