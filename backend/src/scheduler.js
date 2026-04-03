@@ -20,6 +20,69 @@
 
 const ENERGY_PER_CPU_HR = 0.10;   // kWh per CPU-core per hour (= energy cost coefficient)
 
+/**
+ * 0/1 Knapsack — selects the optimal subset of flexible workloads
+ * that maximises total basePrice within the remaining GLOBAL CPU capacity.
+ *
+ * Constraint model: single global CPU pool (servers × cpuPerServer).
+ * Weight = workload.cpu (scaled to integer)
+ * Value  = workload.basePrice
+ * Capacity = remaining CPU after emergency + urgent workloads are placed.
+ *
+ * Guarantees: if total CPU of all candidates ≤ capacity, ALL are selected.
+ *
+ * @param {Array}  workloads  - flexible candidates (each has .cpu, .basePrice)
+ * @param {number} capacity   - remaining global CPU cores available
+ * @returns {Array} - optimal subset to schedule
+ */
+function knapsackSelection(workloads, capacity) {
+  if (!workloads.length) return [];
+
+  // If everything fits, skip DP entirely — select all
+  const totalCpuNeeded = workloads.reduce((s, w) => s + w.cpu, 0);
+  if (totalCpuNeeded <= capacity) {
+    console.log(`[Knapsack] All ${workloads.length} flexible workloads fit — selecting all`);
+    return [...workloads];
+  }
+
+  if (capacity <= 0) return [];
+
+  // Scale CPU to integers for the DP table.
+  // Use a scale that keeps the table size manageable but precise enough.
+  // Max table size = 10000 cells (1000 CPU × scale 10).
+  const SCALE = 10;
+  const cap   = Math.floor(capacity * SCALE);  // NO artificial cap — use real capacity
+  const n     = workloads.length;
+
+  // 1-D DP array (rolling) — value = basePrice for clean integer arithmetic
+  const dp = new Array(cap + 1).fill(0);
+
+  for (let i = 0; i < n; i++) {
+    const weight = Math.ceil(workloads[i].cpu * SCALE);
+    const value  = workloads[i].basePrice || 0;
+    for (let c = cap; c >= weight; c--) {
+      if (dp[c - weight] + value > dp[c]) {
+        dp[c] = dp[c - weight] + value;
+      }
+    }
+  }
+
+  // Backtrack to reconstruct selected items
+  const selected = [];
+  let c = cap;
+  for (let i = n - 1; i >= 0; i--) {
+    const weight = Math.ceil(workloads[i].cpu * SCALE);
+    const value  = workloads[i].basePrice || 0;
+    if (c >= weight && Math.abs(dp[c] - (dp[c - weight] + value)) < 1e-9) {
+      selected.push(workloads[i]);
+      c -= weight;
+    }
+  }
+
+  console.log(`[Knapsack] capacity=${capacity} CPU | candidates=${n} | selected=${selected.length} | max_value=${dp[cap].toFixed(2)}`);
+  return selected;
+}
+
 export function scheduleWorkloads(workloads, resources) {
   const totalCPU    = resources.servers * resources.cpuPerServer;
   const totalMemory = resources.servers * resources.memoryPerServer;
@@ -175,34 +238,38 @@ export function scheduleWorkloads(workloads, resources) {
     accept(w);
   }
 
-  // ── 3. Flexible workloads (delayTolerant = true) ─────────────────────────
-  // Sort by profit/energyCost ratio — best ROI per kWh first
-  const flexible = workloads
-    .filter(w => w.priority !== 'emergency' && w.delayTolerant)
-    .map(w => {
-      const ec    = energyCost(w);
-      const pr    = profit(w);
-      const ratio = ec > 0 ? pr / ec : pr;   // profit per unit of energy
-      return { ...w, _profit: pr, _energyCost: ec, _ratio: ratio };
-    })
-    .sort((a, b) => b._ratio - a._ratio);
+  // ── 3. Flexible workloads — 0/1 Knapsack on remaining GLOBAL CPU capacity ───
+  //
+  // Constraint: single global CPU pool (totalCPU - usedCPU after emergency+urgent).
+  // Weight = workload.cpu   Value = workload.basePrice
+  // Rejection happens ONLY when total CPU demand exceeds remaining capacity.
+  // No per-server limits, no memory constraint, no energy pre-filter.
 
-  for (const w of flexible) {
-    if (w._profit <= 0) {
-      reject(w, 'low_profit');
-      continue;
-    }
-    // Extra gate for flexible: reject if energy cost is disproportionately high
-    // (energyCost > 70% of basePrice means thin margin — not worth deferring)
-    if (w._energyCost > (w.basePrice || 0) * 0.7) {
-      reject(w, 'high_energy_cost');
-      continue;
-    }
-    if (!fitsCapacity(w)) {
+  const allFlexible = workloads.filter(w => w.priority !== 'emergency' && w.delayTolerant);
+
+  // Only reject workloads that are genuinely unprofitable (profit ≤ 0)
+  const flexCandidates = allFlexible
+    .map(w => ({ ...w, _profit: profit(w), _energyCost: energyCost(w) }))
+    .filter(w => w._profit > 0);
+
+  // Reject unprofitable flexible workloads immediately
+  allFlexible.forEach(w => {
+    if (profit(w) <= 0) reject(w, 'low_profit');
+  });
+
+  const remainingCPU = totalCPU - usedCPU;
+
+  // Run 0/1 knapsack — selects optimal subset by basePrice within remaining CPU
+  const selected    = knapsackSelection(flexCandidates, remainingCPU);
+  const selectedIds = new Set(selected.map(w => w.id));
+
+  for (const w of flexCandidates) {
+    if (!selectedIds.has(w.id)) {
+      // Profitable but CPU demand exceeds remaining capacity
       reject(w, 'capacity_full');
-      continue;
+    } else {
+      accept(w);
     }
-    accept(w);
   }
 
   // ── 4. Summary ───────────────────────────────────────────────────────────
