@@ -220,7 +220,8 @@ export function scheduleWorkloads(workloads, resources) {
   }
 
   // ── 2. Urgent workloads (delayTolerant = false) ──────────────────────────
-  // Sort by profit descending — most profitable urgent jobs first
+  // Sort by profit descending — most profitable urgent jobs first.
+  // Enforce GLOBAL CPU cap strictly: reject if adding would exceed totalCPU.
   const urgent = workloads
     .filter(w => w.priority !== 'emergency' && !w.delayTolerant)
     .map(w => ({ ...w, _profit: profit(w) }))
@@ -228,10 +229,10 @@ export function scheduleWorkloads(workloads, resources) {
 
   for (const w of urgent) {
     if (w._profit <= 0) {
-      reject(w, 'low_profit');          // not profitable even if urgent
+      reject(w, 'low_profit');
       continue;
     }
-    if (!fitsCapacity(w)) {
+    if (usedCPU + w.cpu > totalCPU) {   // strict CPU-only gate for urgent
       reject(w, 'capacity_full');
       continue;
     }
@@ -243,7 +244,6 @@ export function scheduleWorkloads(workloads, resources) {
   // Constraint: single global CPU pool (totalCPU - usedCPU after emergency+urgent).
   // Weight = workload.cpu   Value = workload.basePrice
   // Rejection happens ONLY when total CPU demand exceeds remaining capacity.
-  // No per-server limits, no memory constraint, no energy pre-filter.
 
   const allFlexible = workloads.filter(w => w.priority !== 'emergency' && w.delayTolerant);
 
@@ -258,14 +258,22 @@ export function scheduleWorkloads(workloads, resources) {
   });
 
   const remainingCPU = totalCPU - usedCPU;
+  const urgentCPU    = usedCPU;  // CPU consumed by emergency + urgent so far
+
+  // ── Debug logs ────────────────────────────────────────────────────────────
+  console.log(`[Scheduler] TOTAL CPU: ${totalCPU}`);
+  console.log(`[Scheduler] USED CPU (urgent+emergency): ${usedCPU}`);
+  console.log(`[Scheduler] REMAINING CPU: ${remainingCPU}`);
+  console.log(`[Scheduler] FLEXIBLE COUNT: ${allFlexible.length}`);
 
   // Run 0/1 knapsack — selects optimal subset by basePrice within remaining CPU
   const selected    = knapsackSelection(flexCandidates, remainingCPU);
   const selectedIds = new Set(selected.map(w => w.id));
 
+  console.log(`[Scheduler] SELECTED FLEXIBLE: ${selected.length}`);
+
   for (const w of flexCandidates) {
     if (!selectedIds.has(w.id)) {
-      // Profitable but CPU demand exceeds remaining capacity
       reject(w, 'capacity_full');
     } else {
       accept(w);
