@@ -9,22 +9,24 @@ const db = {
   admins: [
     {
       id: 1,
-
       mobile: '+917680841236',
       email: 'sahithigaddoju@gmail.com',
       name: 'Sahithi',
       role: 'Data Center Manager',
-
-      mobile: '+919876543210',
-      email: 'manager@datacenter.com',
-      name: 'Raj Manager',
-      role: 'Cloud Administrator',
-
       approved: true,
       createdAt: new Date('2024-01-01'),
     },
     {
       id: 2,
+      mobile: '+919876543210',
+      email: 'manager@datacenter.com',
+      name: 'Raj Manager',
+      role: 'Cloud Administrator',
+      approved: true,
+      createdAt: new Date('2024-01-01'),
+    },
+    {
+      id: 3,
       mobile: '+919812345678',
       email: 'engineer@datacenter.com',
       name: 'Priya Engineer',
@@ -33,7 +35,7 @@ const db = {
       createdAt: new Date('2024-01-01'),
     },
     {
-      id: 3,
+      id: 4,
       mobile: '+919823456789',
       email: 'admin@datacenter.com',
       name: 'Vikram Admin',
@@ -42,7 +44,7 @@ const db = {
       createdAt: new Date('2024-01-01'),
     },
     {
-      id: 4,
+      id: 5,
       mobile: '+919834567890',
       email: 'ops@datacenter.com',
       name: 'Sneha Ops',
@@ -51,7 +53,7 @@ const db = {
       createdAt: new Date('2024-01-01'),
     },
     {
-      id: 5,
+      id: 6,
       mobile: '+919845678901',
       email: 'security@datacenter.com',
       name: 'Arjun Security',
@@ -61,7 +63,7 @@ const db = {
     },
     // Demo admin for easy testing
     {
-      id: 6,
+      id: 7,
       mobile: '+919999999999',
       email: 'demo@cloudopt.io',
       name: 'Demo Admin',
