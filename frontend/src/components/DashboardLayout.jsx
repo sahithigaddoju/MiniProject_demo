@@ -84,7 +84,7 @@ function Sidebar({ user, theme, tokens, themeKey, setTheme, themePopupOpen, setT
               <Palette size={14} className={theme.subtext} />
               <span className={`text-xs font-semibold uppercase tracking-wider ${theme.subtext}`}>Theme</span>
             </div>
-            {Object.values(themes).map(({ key, name }) => {
+            {Object.values(themes).filter(({ key }) => key !== 'default').map(({ key, name }) => {
               const Icon = themeIcons[key];
               const active = themeKey === key;
               return (
@@ -92,8 +92,7 @@ function Sidebar({ user, theme, tokens, themeKey, setTheme, themePopupOpen, setT
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all hover:bg-white/5"
                   style={{ color: active ? '#22d3ee' : '#94a3b8', backgroundColor: active ? 'rgba(34,211,238,0.08)' : 'transparent' }}>
                   <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs ${
-                    key === 'default' ? 'bg-cyan-500/20 text-cyan-400' :
-                    key === 'light'   ? 'bg-amber-100 text-amber-600' : 'bg-slate-700 text-slate-300'
+                    key === 'light' ? 'bg-amber-100 text-amber-600' : 'bg-slate-700 text-slate-300'
                   }`}><Icon size={14} /></div>
                   <span>{name}</span>
                   {active && (
