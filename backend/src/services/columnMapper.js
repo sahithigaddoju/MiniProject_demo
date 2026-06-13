@@ -72,10 +72,11 @@ function pf(v) {
 function toCores(val, isPercent) {
   const n = pf(val);
   if (n === undefined) return undefined;
-  if (isPercent || n > 16) {
-    // Treat as percentage: map 0–100% → 1–16 cores
-    // e.g. 40% → ~6 cores, 80% → ~13 cores
-    return Math.max(1, Math.round((n / 100) * 16));
+  // Only treat as percentage if the column is explicitly a utilization/percent column
+  // AND the value is in 0-100 range. Never scale down values like 32, 64 (valid core counts).
+  if (isPercent && n <= 100) {
+    // Treat as percentage: map 0–100% → 1–64 cores
+    return Math.max(1, Math.round((n / 100) * 64));
   }
   return Math.max(0.5, n);
 }

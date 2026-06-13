@@ -9,6 +9,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { saveFile, getFileUrl } from '../storage.js';
 import { scheduleWorkloads } from '../scheduler.js';
 import { mapDataset } from '../services/columnMapper.js';
+import { persistScheduleRun } from '../supabase.js';
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/tmp/' });
@@ -198,6 +199,9 @@ router.post('/emergency', requireAuth, (req, res) => {
 
   db.scheduleResults.push(scheduleEntry);
   db.workloads.forEach(b => { b.status = 'scheduled'; });
+
+  // Persist to Supabase (fire-and-forget)
+  persistScheduleRun(scheduleEntry);
 
   res.json({
     message:       'Emergency workload injected and rescheduled with preemption',

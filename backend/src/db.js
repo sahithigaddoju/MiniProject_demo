@@ -9,10 +9,17 @@ const db = {
   admins: [
     {
       id: 1,
+
       mobile: '+917680841236',
       email: 'sahithigaddoju@gmail.com',
       name: 'Sahithi',
       role: 'Data Center Manager',
+
+      mobile: '+919876543210',
+      email: 'manager@datacenter.com',
+      name: 'Raj Manager',
+      role: 'Cloud Administrator',
+
       approved: true,
       createdAt: new Date('2024-01-01'),
     },
@@ -81,9 +88,9 @@ const db = {
 
   // ─── APP DATA ────────────────────────────────────────────────────────────
   resources: {
-    servers: 500,
-    cpuPerServer: 16,
-    memoryPerServer: 64,
+    servers: 150,
+    cpuPerServer: 8,
+    memoryPerServer: 32,
   },
   workloads: [],
   scheduleResults: [],
