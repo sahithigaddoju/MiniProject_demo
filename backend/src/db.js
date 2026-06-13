@@ -9,9 +9,9 @@ const db = {
   admins: [
     {
       id: 1,
-      mobile: '+919876543210',
-      email: 'manager@datacenter.com',
-      name: 'Raj Manager',
+      mobile: '+917680841236',
+      email: 'sahithigaddoju@gmail.com',
+      name: 'Sahithi',
       role: 'Data Center Manager',
       approved: true,
       createdAt: new Date('2024-01-01'),
