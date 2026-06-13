@@ -158,7 +158,7 @@ export function ThemeProvider({ children }) {
   const [themeKey, setThemeKey] = useState(() => {
     const saved = localStorage.getItem('cloudopt-theme');
     // Default to 'default' theme if nothing saved or invalid key
-    return (saved && themes[saved]) ? saved : 'default';
+    return (saved && themes[saved]) ? saved : 'light';
   });
 
   const theme  = themes[themeKey]      || themes.default;
