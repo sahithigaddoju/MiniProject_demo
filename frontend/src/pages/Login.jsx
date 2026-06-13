@@ -132,7 +132,7 @@ export default function Login() {
   };
 
   const handleBack = () => { setStep('input'); setOtp(''); setDemoOtp(''); clearError(); };
-  const isAccessDenied = error.toLowerCase().includes('access denied') || error.toLowerCase().includes('not authorized');
+  const isAccessDenied = typeof error === 'string' && (error.toLowerCase().includes('access denied') || error.toLowerCase().includes('not authorized'));
 
   // ── Shared input style ──────────────────────────────────────────────────────
   const inputStyle = {
